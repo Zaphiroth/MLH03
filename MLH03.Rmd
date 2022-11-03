@@ -1,0 +1,154 @@
+---
+title: "MLH03"
+author: "Liu Zhe"
+date: "2022-11-03"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = TRUE,
+  warning = FALSE
+)
+```
+
+# Environment Variables and Packages
+
+```{r}
+options(java.parameters = "-Xmx2048m",
+        stringsAsFactors = FALSE, 
+        encoding = 'UTF-8')
+
+suppressPackageStartupMessages({
+  # ISLR2
+  library(ISLR2)
+  # DM
+  library(zip)
+  library(openxlsx)
+  library(readxl)
+  library(writexl)
+  library(RcppRoll)
+  library(plyr)
+  library(stringi)
+  library(feather)
+  library(RODBC)
+  library(MASS)
+  library(car)
+  library(data.table)
+  library(lubridate)
+  library(plotly)
+  library(pROC)
+  library(tidymodels)
+  library(tidyverse)
+})
+```
+
+# Auto
+
+environment variables. 
+
+```{r}
+color.origin <- c('1' = '#19d3f3', '2' = '#FFB6C1', '3' = '#00FF00')
+```
+
+Scatter-plot matrix, or splom. 
+
+```{r}
+auto.splom <- plot_ly(Auto, 
+                      color = as.integer(Auto$origin), 
+                      colors = color.origin) %>% 
+  add_trace(
+    type = 'splom',
+    dimensions = list(
+      list(label = 'mpg', values = ~mpg), 
+      list(label = 'cylinders', values = ~cylinders), 
+      list(label = 'displacement', values = ~displacement), 
+      list(label = 'horsepower', values = ~horsepower), 
+      list(label = 'weight', values = ~weight), 
+      list(label = 'acceleration', values = ~acceleration), 
+      list(label = 'year', values = ~year), 
+      list(label = 'origin', values = ~origin)
+    ), 
+    text = ~origin, 
+    marker = list(
+      size = 3
+    )
+  ) %>% 
+  hide_colorbar() %>% 
+  layout(
+    title = 'Scatter-plot Matrix of Auto', 
+    hovermode = 'closest', 
+    dragmode = 'select', 
+    plot_bgcolor = 'rgba(240,240,240, 0.95)', 
+    xaxis = list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 4), 
+    yaxis=list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 4)
+  )
+
+auto.splom
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
