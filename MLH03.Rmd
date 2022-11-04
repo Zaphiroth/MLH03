@@ -25,6 +25,8 @@ suppressPackageStartupMessages({
   library(ISLR2)
   # Schmidt
   library(far)
+  # kernel density
+  library(ks)
   # DM
   library(zip)
   library(openxlsx)
@@ -57,8 +59,8 @@ color.origin <- c('1' = '#19d3f3', '2' = '#FFB6C1', '3' = '#00FF00')
 Scatter-plot matrix, or splom. 
 
 ```{r}
-auto.splom <- plot_ly(Auto, 
-                      color = as.integer(Auto$origin), 
+auto.splom <- plot_ly(ISLR2::Auto, 
+                      color = as.integer(ISLR2::Auto$origin), 
                       colors = color.origin) %>% 
   add_trace(
     type = 'splom',
@@ -93,13 +95,13 @@ auto.splom
 Correlation matrix. 
 
 ```{r}
-cor(Auto[, 1:8])
+cor(ISLR2::Auto[, 1:8])
 ```
 
 Multivariate linear regression. 
 
 ```{r}
-auto.dum <- Auto[, 1:8] %>% 
+auto.dum <- ISLR2::Auto[, 1:8] %>% 
   mutate(American = if_else(origin == 1, 1, 0), 
          European = if_else(origin == 2, 1, 0)) %>% 
   select(-origin)
@@ -136,7 +138,7 @@ Successive orthogonalization.
 auto.ortho <- auto.dum[, -1] %>% 
   mutate(x0 = 1, .before = 1) %>% 
   as.matrix() %>% 
-  orthonormalization(basis = FALSE, norm = FALSE)
+  far::orthonormalization(basis = FALSE, norm = FALSE)
 
 auto.lr.ortho.coef <- c()
 for (i in 2:ncol(auto.ortho)) {
@@ -159,13 +161,13 @@ summary(auto.lr.ortho3)
 High salary. 
 
 ```{r}
-plot(sort(Hitters$Salary))
+plot(sort(ISLR2::Hitters$Salary))
 ```
 
 Set threshold as 250. 
 
 ```{r}
-hitters.class <- Hitters %>% 
+hitters.class <- ISLR2::Hitters %>% 
   filter(!is.na(Salary)) %>% 
   mutate(Salary = if_else(Salary > 500, 1, 0), 
          League = if_else(League == 'A', 1, 0), 
@@ -201,28 +203,34 @@ summary(hitters.logistic)
 Accurate rate. 
 
 ```{r}
-# hitters.pred <- hitters.class %>% 
-#   mutate(obbs = hitters.logistic$fitted.values, 
-#          obbs = exp(obbs), 
-#          p = obbs / (1 + obbs), 
-#          Salary_p = if_else(p > 0.5, 1, 0))
-
-hitters.pred <- hitters.class %>% 
-  mutate(Salary_p = round(hitters.lr$fitted.values), 
+hitters.pred.logistic <- hitters.class %>% 
+  mutate(p = hitters.logistic$fitted.values, 
+         Salary_p = if_else(p > 0.5, 1, 0), 
          acc = if_else(Salary == Salary_p, 1, 0))
 
-sum(hitters.pred$acc) / nrow(hitters.pred)
+(hitters.logistic.acc <- sum(hitters.pred.logistic$acc) / nrow(hitters.pred.logistic))
+
+hitters.pred.lr <- hitters.class %>% 
+  mutate(pred = hitters.lr$fitted.values, 
+         Salary_p = round(pred), 
+         acc = if_else(Salary == Salary_p, 1, 0))
+
+(hitters.lr.acc <- sum(hitters.pred.lr$acc) / nrow(hitters.pred.lr))
 ```
 
 Kernel density estimation. 
 
 ```{r}
-hitters.error <- hitters.pred %>% 
-  filter(acc == 0)
+hitters.error.select <- hitters.pred.logistic %>% 
+  filter(acc == 0) %>% 
+  select(CHits, Hits)
+
+hitters.kde <- ks::kde(x = hitters.error.select, verbose = TRUE)
 ```
 
+Plot kernel density estimation. 
 
-
-
-
+```{r}
+plot(hitters.kde, display = 'slice', cont = c(25, 50, 75, 100))
+```
 
