@@ -66,11 +66,11 @@ auto.splom <- plot_ly(ISLR2::Auto,
     type = 'splom',
     dimensions = list(
       list(label = 'mpg', values = ~mpg), 
-      list(label = 'cylinders', values = ~cylinders), 
-      list(label = 'displacement', values = ~displacement), 
-      list(label = 'horsepower', values = ~horsepower), 
+      list(label = 'cyl', values = ~cylinders), 
+      list(label = 'displace', values = ~displacement), 
+      list(label = 'hp', values = ~horsepower), 
       list(label = 'weight', values = ~weight), 
-      list(label = 'acceleration', values = ~acceleration), 
+      list(label = 'acc', values = ~acceleration), 
       list(label = 'year', values = ~year), 
       list(label = 'origin', values = ~origin)
     ), 
@@ -85,6 +85,7 @@ auto.splom <- plot_ly(ISLR2::Auto,
     hovermode = 'closest', 
     dragmode = 'select', 
     plot_bgcolor = 'rgba(240,240,240, 0.95)', 
+    autosize = TRUE, 
     xaxis = list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 2), 
     yaxis=list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 2)
   )
@@ -164,7 +165,7 @@ High salary.
 plot(sort(ISLR2::Hitters$Salary))
 ```
 
-Set threshold as 250. 
+Set threshold as 500. 
 
 ```{r}
 hitters.class <- ISLR2::Hitters %>% 
