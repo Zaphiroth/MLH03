@@ -23,6 +23,8 @@ options(java.parameters = "-Xmx2048m",
 suppressPackageStartupMessages({
   # ISLR2
   library(ISLR2)
+  # Schmidt
+  library(far)
   # DM
   library(zip)
   library(openxlsx)
@@ -81,71 +83,143 @@ auto.splom <- plot_ly(Auto,
     hovermode = 'closest', 
     dragmode = 'select', 
     plot_bgcolor = 'rgba(240,240,240, 0.95)', 
-    xaxis = list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 4), 
-    yaxis=list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 4)
+    xaxis = list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 2), 
+    yaxis=list(domain = NULL, showline = F, zeroline = F, gridcolor = '#ffff', ticklen = 2)
   )
 
 auto.splom
 ```
 
+Correlation matrix. 
 
+```{r}
+cor(Auto[, 1:8])
+```
 
+Multivariate linear regression. 
 
+```{r}
+auto.dum <- Auto[, 1:8] %>% 
+  mutate(American = if_else(origin == 1, 1, 0), 
+         European = if_else(origin == 2, 1, 0)) %>% 
+  select(-origin)
 
+auto.lr <- lm(mpg ~ ., data = auto.dum)
+summary(auto.lr)
+```
 
+Linear regression diagnostic plot. 
 
+```{r}
+par(mfrow = c(2, 2))
+plot(auto.lr)
+```
 
+Stepwise regression. 
 
+```{r}
+auto.lr.inter <- lm(mpg ~ 1, data = auto.dum)
+auto.lr.both <- stats::step(auto.lr.inter, scope = formula(auto.lr), direction = 'both', trace = 0)
+summary(auto.lr.both)
+```
 
+weight, year, American. 
 
+```{r}
+auto.lr.both3 <- lm(mpg ~ weight + year + American, data = auto.dum)
+summary(auto.lr.both3)
+```
 
+Successive orthogonalization. 
 
+```{r}
+auto.ortho <- auto.dum[, -1] %>% 
+  mutate(x0 = 1, .before = 1) %>% 
+  as.matrix() %>% 
+  orthonormalization(basis = FALSE, norm = FALSE)
 
+auto.lr.ortho.coef <- c()
+for (i in 2:ncol(auto.ortho)) {
+  auto.lr.res <- lm(auto.dum$mpg ~ auto.ortho[, i])
+  auto.lr.ortho.coef[names(auto.dum)[i]] <- auto.lr.res$coefficients[2]
+}
 
+sort(auto.lr.ortho.coef)
+```
 
+cylinders, American, year. 
 
+```{r}
+auto.lr.ortho3 <- lm(mpg ~ cylinders + American + year, data = auto.dum)
+summary(auto.lr.ortho3)
+```
 
+# Hitters
 
+High salary. 
 
+```{r}
+plot(sort(Hitters$Salary))
+```
 
+Set threshold as 250. 
 
+```{r}
+hitters.class <- Hitters %>% 
+  filter(!is.na(Salary)) %>% 
+  mutate(Salary = if_else(Salary > 500, 1, 0), 
+         League = if_else(League == 'A', 1, 0), 
+         Division = if_else(Division == 'E', 1, 0), 
+         NewLeague = if_else(NewLeague == 'A', 1, 0))
+```
 
+Stepwise. 
 
+```{r}
+hitters.lr.inter <- lm(Salary ~ 1, data = hitters.class)
+hitters.lr.all <- lm(Salary ~ ., data = hitters.class)
+hitters.lr.both <- stats::step(hitters.lr.inter, scope = formula(hitters.lr.all), direction = 'both', trace = 0)
+summary(hitters.lr.both)
+```
 
+CHits, Hits. 
 
+Linear regression. 
 
+```{r}
+hitters.lr <- lm(Salary ~ CHits + Hits, data = hitters.class)
+summary(hitters.lr)
+```
 
+Logistic regression. 
 
+```{r}
+hitters.logistic <- glm(Salary ~ CHits + Hits, family = binomial(link = 'logit'), data = hitters.class)
+summary(hitters.logistic)
+```
 
+Accurate rate. 
 
+```{r}
+# hitters.pred <- hitters.class %>% 
+#   mutate(obbs = hitters.logistic$fitted.values, 
+#          obbs = exp(obbs), 
+#          p = obbs / (1 + obbs), 
+#          Salary_p = if_else(p > 0.5, 1, 0))
 
+hitters.pred <- hitters.class %>% 
+  mutate(Salary_p = round(hitters.lr$fitted.values), 
+         acc = if_else(Salary == Salary_p, 1, 0))
 
+sum(hitters.pred$acc) / nrow(hitters.pred)
+```
 
+Kernel density estimation. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```{r}
+hitters.error <- hitters.pred %>% 
+  filter(acc == 0)
+```
 
 
 
